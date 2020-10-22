@@ -18,15 +18,6 @@ TwoViewOptimizer::TwoViewOptimizer(std::vector<Vec3> const &x1, std::vector<Vec3
     _nMeasurements = x1.size();
     _modelDimension = (int) params.size();
 
-    _Rx = Eigen::Matrix3d(); _Rx.setZero(); 
-    _Rx(0,0) = 1.0; 
-    _Ry = Eigen::Matrix3d(); _Ry.setZero(); 
-    _Ry(1,1) = 1.0;
-    _Rz = Eigen::Matrix3d(); _Rz.setZero();
-    _Rz(2,2) = 1.0;
-
-    _Tx = Mat3::Zero();
-
     _grad.resize(_modelDimension);    
     _delta.resize(_modelDimension);
     _JtJ.resize(_modelDimension,_modelDimension);
@@ -138,10 +129,7 @@ void TwoViewOptimizer::retractSolution()
 void TwoViewOptimizer::optimize()
 {
     double init_cost;
-    // init_cost = compute_cost(false);
-    // _stat.Log(0.0, init_cost);
     _lambda = 1e-3;
-    std::cout<<" RUNNING IN DEBUG MODE WITH LAMBDA = 0";
     auto start_time = std::chrono::steady_clock::now();
     auto end_time  = std::chrono::steady_clock::now();
 
