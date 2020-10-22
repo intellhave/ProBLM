@@ -1,14 +1,6 @@
 #include "common_utils.h"
-#include "eth3d_handler.h"
-#include "image_utils.h"
 #include "nlsq.h"
-#include "robust_nlsq.h"
-#include "robust_nlsq_gnc.h"
-#include "robust_nlsq_irls.h"
-#include "robust_stochastic_nlsq.h"
-#include "robust_stochastic_nlsq_gnc.h"
 #include "stochastic_nlsq.h"
-#include "stochastic_nlsq_momentum.h"
 #include "twoview_models.h"
 #include <cstring>
 #include <iostream>
@@ -79,7 +71,6 @@ int main(int argvc, char **argv) {
       new StochasticTwoViewOptimizer(x1, x2, model, params, config, sto_stat);
 
   sto_opt->optimize();
-
   /* std::string sto_log_path = "./logs/sto/" + run_str + ".txt"; */
   /* sto_stat.WriteToFile(sto_log_path); */
   

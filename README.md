@@ -11,6 +11,8 @@ Please make sure that you have Eigen installed. On Ubuntu, this can be done by
 sudo apt-get install libeigen3-dev
 ```
 
+Besides, some functions from the V3D library written by Professor Christopher Zach are also used. 
+They are included in this repository.
 ## Compile
 A CMakelists.txt file has been provided in this repository. From the directory containing the source code, create a build folder. From this build directory, use cmake to generate the makefiles and compile the code:
 ``` 
