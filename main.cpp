@@ -2,6 +2,7 @@
 #include "nlsq.h"
 #include "stochastic_nlsq.h"
 #include "twoview_models.h"
+#include "robust_nlsq_gnc.h"
 #include <cstring>
 #include <iostream>
 #include <string>
@@ -75,5 +76,13 @@ int main(int argvc, char **argv) {
 
   /* std::string sto_log_path = "./logs/sto/" + run_str + ".txt"; */
   /* sto_stat.WriteToFile(sto_log_path); */
+
+  //Uncomment the following to run robust 
+  //---------------------
+  /* for (int i = 0; i < 5; ++i) */
+  /*   params[i] = init_params[i]; */
+  /* RobustTwoViewOptimizer_GNC *gnc_opt = */
+  /*     new RobustTwoViewOptimizer_GNC (x1, x2, model, params, config, sto_stat); */
+  /* gnc_opt->optimize(); */
   
  }

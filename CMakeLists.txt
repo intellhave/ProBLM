@@ -17,6 +17,8 @@ set (SOURCES
         src/twoview_models.cpp
         src/nlsq.cpp
         src/stochastic_nlsq.cpp
+        src/robust_nlsq.cpp
+        src/robust_nlsq_gnc.cpp
     )
 
 set (CMAKE_BUILD_TYPE Release)

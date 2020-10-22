@@ -42,6 +42,15 @@ inline void copySubsetVector(std::vector<T> const &src, std::vector<int> const &
         dst.push_back(src[subset_idx[i]]);
     }
 }
+// ------------------------------------------------------------------------------
+struct Psi_SmoothTrunc
+{
+   static double fun(double r2) { return 0.25 * ((r2 <= 1.0) ? r2 * (2.0 - r2) : 1.0); }
+   static double weight_fun(double r2) { return std::max(0.0, 1.0 - r2); }
+   static double weight_fun_deriv(double r2) { return (r2 <= 1.0) ? -2.0 * sqrt(r2) : 0.0; }
+   static double gamma_omega_fun(double r2) { return 0.25 * sqr(Psi_SmoothTrunc::weight_fun(r2) - 1.0); }
+   static double get_convex_range() { return sqrt(0.333333333); }
+};
 
 // ------------------------------------------------------------------------------
 static void randomSampling(int N, int sampleSize, std::vector<int>& sampled_indices)
@@ -201,4 +210,5 @@ static void readData(std::string const &filename, std::vector<Vec3> &x1, std::ve
 
 // ------------------------------------------------------------------------------
 
+typedef Psi_SmoothTrunc Psi;
 #endif
