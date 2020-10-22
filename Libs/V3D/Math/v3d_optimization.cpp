@@ -16,7 +16,6 @@ extern "C"
 
 #define USE_BLOCK_REORDERING 1
 //#define USE_MULTIPLICATIVE_UPDATE 1
-// # define V3DLIB_ENABLE_SUITESPARSE
 
 #include <iostream>
 #include <map>

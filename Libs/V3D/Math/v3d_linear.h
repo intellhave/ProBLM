@@ -304,10 +304,6 @@ namespace V3D
    template <typename Elem>
    struct VectorArray
    {
-         VectorArray()
-            : _count(0), _size(0), _values(0), _vectors(0)
-         { }
-
          VectorArray(unsigned count, unsigned size)
             : _count(count), _size(size), _values(0), _vectors(0)
          {
@@ -335,32 +331,6 @@ namespace V3D
 
          unsigned count() const { return _count; }
          unsigned size()  const { return _size; }
-
-         void newsize(unsigned count, unsigned size)
-         {
-            if (count == _count && _size == size) return;
-
-            if (_values)
-            {
-               delete [] _values;
-               delete [] _vectors;
-            }
-
-            _count = count;
-            _size = size;
-
-            unsigned const nTotal = _count * _size;
-            if (count > 0) _vectors = new Vector<Elem>[count];
-            if (nTotal > 0) _values = new Elem[nTotal];
-            for (unsigned i = 0; i < _count; ++i) new (&_vectors[i]) Vector<Elem>(_size, _values + i*_size);
-         }
-
-         void newsize(unsigned count, unsigned size, Elem initVal)
-         {
-            this->newsize(count, size);
-            unsigned const nTotal = _count * _size;
-            std::fill(_values, _values + nTotal, initVal);
-         }
 
          //! Get the submatrix at position ix
          Vector<Elem> const& operator[](unsigned ix) const
@@ -416,10 +386,6 @@ namespace V3D
    template <typename Elem>
    struct MatrixArray
    {
-         MatrixArray()
-            : _count(0), _rows(0), _columns(0), _values(0), _matrices(0)
-         { }
-
          MatrixArray(unsigned count, unsigned nRows, unsigned nCols)
             : _count(count), _rows(nRows), _columns(nCols), _values(0), _matrices(0)
          {
@@ -434,29 +400,6 @@ namespace V3D
          {
             delete [] _matrices;
             delete [] _values;
-         }
-
-         void newsize(unsigned count, unsigned nRows, unsigned nCols)
-         {
-            if (count == _count && nRows == _rows && nCols == _columns) return;
-
-            delete [] _matrices;
-            delete [] _values;
-
-            _count = count; _rows = nRows; _columns = nCols;
-
-            unsigned const nTotal = _count * _rows * _columns;
-            if (count > 0) _matrices = new Matrix<Elem>[count];
-            if (nTotal > 0) _values = new Elem[nTotal];
-            for (unsigned i = 0; i < _count; ++i)
-               new (&_matrices[i]) Matrix<Elem>(_rows, _columns, _values + i*(_rows*_columns));
-         }
-
-         void newsize(unsigned count, unsigned nRows, unsigned nCols, Elem initVal)
-         {
-            this->newsize(count, nRows, nCols);
-            unsigned const nTotal = _count * _rows * _columns;
-            std::fill(_values, _values + nTotal, initVal);
          }
 
          //! Get the submatrix at position ix
@@ -700,37 +643,37 @@ namespace V3D
 
    template <typename Vec>
    inline void
-   displayVector(Vec const& v, ostream& os = std::cout)
+   displayVector(Vec const& v)
    {
       using namespace std;
 
-      os << "[ ";
+      cout << "[ ";
       for (int r = 0; r < v.size(); ++r)
-         os << v[r] << " ";
-      os << "]" << endl;
+         cout << v[r] << " ";
+      cout << "]" << endl;
    }
 
    template <typename Mat>
    inline void
-   displayMatrix(Mat const& A, ostream& os = std::cout)
+   displayMatrix(Mat const& A)
    {
       using namespace std;
 
-      os << "[ ";
+      cout << "[ ";
       for (int r = 0; r < A.num_rows(); ++r)
       {
          for (int c = 0; c < A.num_cols(); ++c)
-            os << A[r][c] << " ";
+            cout << A[r][c] << " ";
          if (r < A.num_rows()-1)
-            os << endl;
+            cout << endl;
          else
-            os << "]" << endl;
+            cout << "]" << endl;
       }
    }
 
    template <typename SparseMat>
    inline void
-   displaySparseMatrix(SparseMat const& A, ostream& os = std::cout)
+   displaySparseMatrix(SparseMat const& A)
    {
       int const n = A.num_rows();
       int const m = A.num_cols();
@@ -754,12 +697,12 @@ namespace V3D
             denseA[i][j] = vals[k];
          }
       } // end for (j)
-      displayMatrix(denseA, os);
+      displayMatrix(denseA);
    } // end displaySparseMatrix()
 
    template <typename Elem>
    inline void
-   showSparseMatrixInfo(CCS_Matrix<Elem> const& A, ostream& os = std::cout)
+   showSparseMatrixInfo(CCS_Matrix<Elem> const& A)
    {
       int const nCols = A.num_cols();
       int const nnz = A.getNonzeroCount();
@@ -768,21 +711,21 @@ namespace V3D
       int const * destIdxs  = A.getDestIndices();
       Elem const * values = A.getValues();
 
-      os << "colStarts = ";
-      for (int k = 0; k <= nCols; ++k) os << colStarts[k] << " ";
-      os << endl;
+      cout << "colStarts = ";
+      for (int k = 0; k <= nCols; ++k) cout << colStarts[k] << " ";
+      cout << endl;
 
-      os << "rowIdxs = ";
-      for (int k = 0; k < nnz; ++k) os << rowIdxs[k] << " ";
-      os << endl;
+      cout << "rowIdxs = ";
+      for (int k = 0; k < nnz; ++k) cout << rowIdxs[k] << " ";
+      cout << endl;
 
-      os << "destIdxs = ";
-      for (int k = 0; k < nnz; ++k) os << destIdxs[k] << " ";
-      os << endl;
+      cout << "destIdxs = ";
+      for (int k = 0; k < nnz; ++k) cout << destIdxs[k] << " ";
+      cout << endl;
 
-      os << "values = ";
-      for (int k = 0; k < nnz; ++k) os << values[k] << " ";
-      os << endl;
+      cout << "values = ";
+      for (int k = 0; k < nnz; ++k) cout << values[k] << " ";
+      cout << endl;
    } // end showSparseMatrixInfo()
 
 } // end namespace V3D

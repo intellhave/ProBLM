@@ -12,19 +12,12 @@
 namespace V3D
 {
 
-   enum BundleCostKernel
-      {
-         BUNDLE_COST_KERNEL_QUADRATIC = 0,
-         BUNDLE_COST_KERNEL_HUBER = 1,
-         BUNDLE_COST_KERNEL_LIFTED = 2,
-      };
-
    // This structure provides some helper functions common to all metric BAs
    struct MetricBundleOptimizerBase : public SparseLevenbergOptimizer
    {
          typedef SparseLevenbergOptimizer Base;
 
-         MetricBundleOptimizerBase(double inlierThreshold, BundleCostKernel const kernel,
+         MetricBundleOptimizerBase(double inlierThreshold,
                                    vector<CameraMatrix>& cams,
                                    vector<Vector3d>& Xs,
                                    vector<Vector2d> const& measurements,
@@ -33,10 +26,10 @@ namespace V3D
                                    int nAddParamsA, int nParamsC)
             : SparseLevenbergOptimizer(2, cams.size(), 6+nAddParamsA, Xs.size(), 3, nParamsC,
                                        corrspondingView, corrspondingPoint),
-               _cams(cams), _Xs(Xs), _measurements(measurements),
-               _savedTranslations(cams.size()), _savedRotations(cams.size()),
-               _savedXs(Xs.size()),
-               _inlierThreshold(inlierThreshold), _cachedParamLength(0.0), _kernel(kernel)
+              _cams(cams), _Xs(Xs), _measurements(measurements),
+              _savedTranslations(cams.size()), _savedRotations(cams.size()),
+              _savedXs(Xs.size()),
+              _inlierThreshold(inlierThreshold), _cachedParamLength(0.0)
          {
             // Since we assume that BA does not alter the inputs too much,
             // we compute the overall length of the parameter vector in advance
@@ -55,61 +48,13 @@ namespace V3D
          // Huber robust cost function.
          virtual void fillWeights(VectorArray<double> const& residual, Vector<double>& w)
          {
-            switch (_kernel)
+            for (unsigned int k = 0; k < w.size(); ++k)
             {
-               case BUNDLE_COST_KERNEL_QUADRATIC:
-                  for (unsigned int k = 0; k < w.size(); ++k) w[k] = 1.0;
-                  break;
-
-               case BUNDLE_COST_KERNEL_HUBER:
-                  for (unsigned int k = 0; k < w.size(); ++k)
-                  {
-                     Vector<double> const& r = residual[k];
-                     double const e = norm_L2(r);
-                     w[k] = (e < _inlierThreshold) ? 1.0 : sqrt(_inlierThreshold / e);
-                  } // end for (k)
-                  break;
-
-               case BUNDLE_COST_KERNEL_LIFTED:
-               {
-                  double const inlierThreshold2 = _inlierThreshold*_inlierThreshold;
-                  for (unsigned int k = 0; k < w.size(); ++k)
-                  {
-
-                     Vector<double> const& r = residual[k];
-                     double const e = norm_L2(r);
-                     w[k] = sqrt(std::max(0.0, 1.0 - e*e/inlierThreshold2));
-                  } // end for (k)
-                  break;
-               }
-               default:
-                  cerr << "MetricBundleOptimizerBase::fillWeights(): Unknown kernel " << _kernel << endl;
-            } // end switch (_kernel)
-
-            // if (_useHuberCost)
-            // {
-            //    for (unsigned int k = 0; k < w.size(); ++k)
-            //    {
-            //       Vector<double> const& r = residual[k];
-            //       double const e = norm_L2(r);
-            //       w[k] = (e < _inlierThreshold) ? 1.0 : sqrt(_inlierThreshold / e);
-            //    } // end for (k)
-            // }
-            // else
-            // {
-            //    for (unsigned int k = 0; k < w.size(); ++k)
-            //    {
-            //       Vector<double> const& r = residual[k];
-            //       double const e = norm_L2(r);
-            //       if (e < _inlierThreshold)
-            //          w[k] = 1.0;
-            //       else if (e > 3*_inlierThreshold)
-            //          w[k] = 0.0;
-            //       else
-            //          w[k] = sqrt(_inlierThreshold / e);
-            //    } // end for (k)
-            // } // end if (_useHuberCost)
-         } // end fillWeights()
+               Vector<double> const& r = residual[k];
+               double const e = norm_L2(r);
+               w[k] = (e < _inlierThreshold) ? 1.0 : sqrt(_inlierThreshold / e);
+            } // end for (k)
+         }
 
          virtual double getParameterLength() const
          {
@@ -157,8 +102,6 @@ namespace V3D
 
          double const _inlierThreshold;
          double       _cachedParamLength;
-
-         BundleCostKernel const _kernel;
    }; // end struct MetricBundleOptimizerBase
 
    struct StdMetricBundleOptimizer : public MetricBundleOptimizerBase
@@ -170,8 +113,8 @@ namespace V3D
                                   vector<Vector3d>& Xs,
                                   vector<Vector2d> const& measurements,
                                   vector<int> const& corrspondingView,
-                                  vector<int> const& corrspondingPoint, BundleCostKernel const kernel = BUNDLE_COST_KERNEL_HUBER)
-            : MetricBundleOptimizerBase(inlierThreshold, kernel, cams, Xs, measurements,
+                                  vector<int> const& corrspondingPoint)
+            : MetricBundleOptimizerBase(inlierThreshold, cams, Xs, measurements,
                                         corrspondingView, corrspondingPoint, 0, 0)
          { }
 
@@ -230,8 +173,8 @@ namespace V3D
                                               vector<Vector3d>& Xs,
                                               vector<Vector2d> const& measurements,
                                               vector<int> const& corrspondingView,
-                                              vector<int> const& corrspondingPoint, BundleCostKernel const kernel = BUNDLE_COST_KERNEL_HUBER)
-         : MetricBundleOptimizerBase(inlierThreshold, kernel, cams, Xs, measurements,
+                                              vector<int> const& corrspondingPoint)
+            : MetricBundleOptimizerBase(inlierThreshold, cams, Xs, measurements,
                                         corrspondingView, corrspondingPoint,
                                         0, globalParamDimensionFromMode(mode)),
               _mode(mode), _K(K), _distortion(distortion)
@@ -321,8 +264,8 @@ namespace V3D
                                                vector<Vector3d>& Xs,
                                                vector<Vector2d> const& measurements,
                                                vector<int> const& corrspondingView,
-                                               vector<int> const& corrspondingPoint, BundleCostKernel const kernel = BUNDLE_COST_KERNEL_HUBER)
-         : MetricBundleOptimizerBase(inlierThreshold, kernel, cams, Xs, measurements,
+                                               vector<int> const& corrspondingPoint)
+            : MetricBundleOptimizerBase(inlierThreshold, cams, Xs, measurements,
                                         corrspondingView, corrspondingPoint,
                                         extParamDimensionFromMode(mode), 0),
               _mode(mode), _distortions(distortions),
@@ -382,7 +325,7 @@ namespace V3D
    struct ScopedBundleExtrinsicNormalizer
    {
          ScopedBundleExtrinsicNormalizer(vector<CameraMatrix>& cameras,
-                                         vector<Vector3d>& Xs, double const targetScale = 1.0)
+                                         vector<Vector3d>& Xs)
             : _cameras(cameras), _Xs(Xs)
          {
             int const N = cameras.size();
@@ -404,7 +347,7 @@ namespace V3D
             for (int j = 0; j < M; ++j) sqrNorm += sqrNorm_L2(Xs[j]);
 
             _scale = sqrt(sqrNorm);
-            double const rcpScale = targetScale / _scale;
+            double const rcpScale = 1.0 / _scale;
 
             for (int i = 0; i < N; ++i) scaleVectorIP(rcpScale, camCenters[i]);
             for (int j = 0; j < M; ++j) scaleVectorIP(rcpScale, Xs[j]);

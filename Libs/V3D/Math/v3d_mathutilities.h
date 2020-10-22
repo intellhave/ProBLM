@@ -11,8 +11,6 @@
 namespace V3D
 {
 
-   template <typename T> inline T sqr(T x) { return x*x; }
-
    template <typename Mat>
    inline double
    getRotationMagnitude(Mat const& R)
@@ -176,30 +174,19 @@ namespace V3D
       assert(R.num_rows() == 3);
       assert(R.num_cols() == 3);
 
-      double const theta2 = sqrNorm_L2(omega);
-
-      double c1 = 1.0 - theta2/6.0, c2 = 0.5;
-
-      if (theta2 > 1e-6)
-      {
-         double const theta = sqrt(theta2);
-         c1 = sin(theta) / theta;
-         c2 = (1.0-cos(theta)) / theta2;
-      }
-      else if (theta2 > 1e-8)
-      {
-         c1 = 1.0 + theta2/6.0 * (-1.0 + theta2/20.0);
-         c2 = 0.5 - theta2/24.0;
-      }
-
-      Matrix3x3d J, J2;
-      makeCrossProductMatrix(omega, J);
-      multiply_A_B(J, J, J2);
-
+      double const theta = norm_L2(omega);
       makeIdentityMatrix(R);
-      for (int i = 0; i < 3; ++i)
-         for (int j = 0; j < 3; ++j)
-            R[i][j] += c1*J[i][j] + c2*J2[i][j];
+      if (fabs(theta) > 1e-6)
+      {
+         Matrix3x3d J, J2;
+         makeCrossProductMatrix(omega, J);
+         multiply_A_B(J, J, J2);
+         double const c1 = sin(theta)/theta;
+         double const c2 = (1-cos(theta))/(theta*theta);
+         for (int i = 0; i < 3; ++i)
+            for (int j = 0; j < 3; ++j)
+               R[i][j] += c1*J[i][j] + c2*J2[i][j];
+      }
    } // end createRotationMatrixRodrigues()
 
    template <typename Vec, typename Mat>
@@ -429,7 +416,7 @@ namespace V3D
          scale += d2/d1;
       }
       scale /= n;
-      if(isinf(float(scale))||isnan(float(scale))||scale==0.0)scale=1.0;
+      if(isinf(scale)||isnan(scale)||scale==0.0)scale=1.0;
       for (size_t i = 0; i < n; ++i) scaleVectorIP(scale, left[i]);
 
       getEuclideanTransformation(left, right, R, T);
@@ -492,7 +479,7 @@ namespace V3D
    bool computeRealRootsOfPolynomial(int order, Field const * coeffs, std::vector<Field>& roots,
                                      RootFindingParameters<Field> const& params = RootFindingParameters<Field>());
 
-   bool computeRealRootsOfPolynomial_Jenkins_Traub(int order, double const * coeffs, std::vector<double>& roots);
+   template <typename T> inline T sqr(T x) { return x*x; }
 
 //**********************************************************************
 

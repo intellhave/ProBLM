@@ -6,7 +6,7 @@
 #include <iostream>
 #include <limits.h> // for INT_MAX
 
-// #define V3DLIB_ENABLE_LIBPNG
+
 #if defined(V3DLIB_ENABLE_LIBJPEG)
 extern "C"
 {

@@ -17,7 +17,8 @@
 #ifdef V3DLIB_ENABLE_IMDEBUG
 #  include <imdebug.h>
 #endif
-
+#define V3DLIB_ENABLE_LIBPNG
+#define V3DLIB_ENABLE_LIBJPEG
 namespace V3D
 {
 

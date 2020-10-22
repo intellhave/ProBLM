@@ -10,8 +10,6 @@
 #include <vector>
 #include <iostream>
 
-#define V3DLIB_ENABLE_SUITESPARSE
-
 namespace V3D
 {
 
@@ -25,61 +23,6 @@ namespace V3D
          int dimension[NLSQ_MAX_PARAM_TYPES]; //!< What is the dimension of each parameter kind
          int count[NLSQ_MAX_PARAM_TYPES];     //!< How many unknowns are there per parameter type
    }; // end struct NLSQ_ParamDesc
-     
-   //! This structure holds the residuals, weights and Jacobian for a filter method with two cost functions
-   struct Filter_Residuals
-   {
-         Filter_Residuals(vector<int> const& usedParamTypes, int const nMeasurements,
-                        int const measurementDimension, NLSQ_ParamDesc const& paramDesc)
-            : _residualsF(nMeasurements, measurementDimension),
-              _residualsH(nMeasurements, measurementDimension),
-              _weights(nMeasurements), _h_weights(nMeasurements),
-              _JFs(usedParamTypes.size()),
-              _JHs(usedParamTypes.size())
-         {
-            for (int k = 0; k < usedParamTypes.size(); ++k)
-            {
-               int const paramType = usedParamTypes[k];
-               int const paramDimension = paramDesc.dimension[paramType];
-               _JFs[k] = new MatrixArray<double>(nMeasurements, measurementDimension, paramDimension);
-               _JHs[k] = new MatrixArray<double>(nMeasurements, measurementDimension, paramDimension);
-            } // end for (k)
-         } // end NLSQ_Residuals()
-
-         Filter_Residuals(vector<int> const& usedParamTypes, int const nMeasurements,
-                        int const fResidualDimension, int const hResidualDimension, NLSQ_ParamDesc const& paramDesc)
-            : _residualsF(nMeasurements, fResidualDimension),
-              _residualsH(nMeasurements, hResidualDimension),
-              _weights(nMeasurements),
-              _JFs(usedParamTypes.size()),
-              _JHs(usedParamTypes.size())
-         {
-            for (int k = 0; k < usedParamTypes.size(); ++k)
-            {
-               int const paramType = usedParamTypes[k];
-               int const paramDimension = paramDesc.dimension[paramType];
-               _JFs[k] = new MatrixArray<double>(nMeasurements, fResidualDimension, paramDimension);
-               _JHs[k] = new MatrixArray<double>(nMeasurements, hResidualDimension, paramDimension);
-            } // end for (k)
-         } // end NLSQ_Residuals()
-
-         ~Filter_Residuals()
-         {
-            for (int i = 0; i < _JFs.size(); ++i) delete _JFs[i];
-            for (int i = 0; i < _JHs.size(); ++i) delete _JHs[i];
-         }
-
-         VectorArray<double> _residualsF;
-         VectorArray<double> _residualsH;
-
-         Vector<double>      _weights;
-         Vector<double>      _h_weights;
-
-         vector<MatrixArray<double> * > _JHs;
-         vector<MatrixArray<double> * > _JFs;
-   }; // end struct NLSQ_Residuals
-
-
 
    //! This structure holds the residuals, weights and Jacobian for a particular cost function.
    struct NLSQ_Residuals
@@ -172,62 +115,18 @@ namespace V3D
             assert(usedParamTypes.size() == correspondingParams.num_cols());
          }
 
-         virtual void  preIterationCallback() { }
-         virtual void  initializeResiduals()  { }
-         virtual void  evalResidual(int const k, Vector<double>& residual) const = 0;
-         virtual void  evalLinearizedResidual(int const k, Vector2d& residual) {}
-         virtual void  evalLinearizedResidual(int const k, Matrix<double>& J, Vector2d& residual) {}
-
-         //check for inlier
-         virtual bool isInlier(int const i) {}
-
-         //This is added for auxiliary variables
-         virtual double evalFiCost(int const i) const {return 0.0;}
-         virtual double evalFiWeight(int const i) const {return 1.0;}
-         virtual void evalFiResidual(int const i, Vector<double>& e) {}
-         
-         virtual double evalHiCost(int const i) const {return 0.0;}
-         virtual void evalHiResidual(int const i, Vector<double>& e) {}
-         virtual double evalHiWeight(int const i) const {return 1.0;}
-         virtual double evalRiCost (int const i) const {return 0.0;}
-         virtual void setPenaltyParam(double const param) {};
-
-         //Initialize auxiliary variables
-         virtual void initAuxVars() {}
-
-         virtual void evalOrgResidual(int const k, Vector<double>& e) const {}
-         
-         virtual void fillLinearConstraints(int const k, 
-                                           Vector<double>& constr1, 
-                                           Vector<double>& constr2,
-                                           double& b1, 
-                                           double& b2) {}
-         virtual void   initializeWeights(VectorArray<double> const& residuals) { }
-         virtual double getWeight(Vector<double> const& residual, int const k) const { return 1.0; }
-
+         virtual double getWeight(Vector<double> const& residual) const { return 1.0; }
+         virtual void evalResidual(int const k, Vector<double>& residual) const = 0;
 
          virtual double evalCost(VectorArray<double> const& residuals, Vector<double> const& weights) const
          {
             double res = 0.0;
-            for (int k = 0; k < _nMeasurements; ++k) res += sqr(weights[k]) * sqrNorm_L2(residuals[k]);
+            for (int k = 0; k < _nMeasurements; ++k) res += weights[k] * weights[k] * sqrNorm_L2(residuals[k]);
             return res;
          } // end evalCost()
 
-
          virtual void initializeJacobian() { }
          virtual void fillJacobian(int const whichParam, int const paramIx, int const k, Matrix<double>& J) const = 0;
-
-         // //For filter methods
-         virtual void fillJacobian_F(int const whichParam, int const paramIx, int const k, Matrix<double>& J) {}
-         virtual void fillJacobian_H(int const whichParam, int const paramIx, int const k, Matrix<double>& J) {}
-
-         virtual void combineJacobian(Matrix<double>const& J1, Matrix<double>const& J2, 
-                                      double const w1, double const w2,
-                                      Matrix<double>& J) {}
-
-         //Cache residuals for filter methods
-         virtual void cache_filter_residuals(Filter_Residuals &residuals) {}
-
 
          virtual void multiply_JtJ(double const lambda, int const k, Vector<double> const& residual, Matrix<double> const& J1, Matrix<double> const& J2,
                                    Matrix<double>& J1tJ2)
@@ -247,31 +146,18 @@ namespace V3D
          // If this is the case, solely modifying the main diagonal of JtJ is not enough.
          virtual bool forbid_derivative_caching() const { return false; }
 
-         //protected:
+      protected:
          void evalAllResiduals(VectorArray<double>& residuals) const
          {
-            for (int k = 0; k < _nMeasurements; ++k) 
-               this->evalResidual(k, residuals[k]);
+            for (int k = 0; k < _nMeasurements; ++k) this->evalResidual(k, residuals[k]);
          } // end evalAllResiduals()
 
          void fillAllWeights(VectorArray<double> const& residuals, Vector<double>& w) const
          {
-            for (int k = 0; k < _nMeasurements; ++k) w[k] = this->getWeight(residuals[k], k);
+            for (int k = 0; k < _nMeasurements; ++k) w[k] = this->getWeight(residuals[k]);
          }
 
          void fillAllJacobians(Vector<double> const& weights, vector<MatrixArray<double> * >& Js) const;
-
-         //This is for Filter
-         virtual void fillAllJacobians_F(Vector<double> const& weights, vector<MatrixArray<double> * >& Js) {};
-         virtual void fillAllJacobians_F_smooth(Vector<double> const& weights, vector<MatrixArray<double> * >& Js) {};
-         virtual void fillAllJacobians_H(Vector<double> const& weights, vector<MatrixArray<double> * >& Js) {};
-         virtual void combineAllJacobians(vector<MatrixArray<double> * >const & Js1,
-                                          vector<MatrixArray<double> * >const & Js2,
-                                          double const w1, double const w2,
-                                          vector<MatrixArray<double> * >& Js ) {};
-
-
-
 
          std::vector<int> const& _usedParamTypes;
          int              const  _nMeasurements;
@@ -285,49 +171,20 @@ namespace V3D
    {
          NLSQ_LM_Optimizer(NLSQ_ParamDesc const& paramDesc,
                            std::vector<NLSQ_CostFunction *> const& costFunctions,
-                           ostream &log_ostream = std::cout,
                            bool const runSymamd = true);
 
          ~NLSQ_LM_Optimizer();
 
          void minimize();
 
-         virtual bool allowStoppingCriteria() const { return true; }
-
-         virtual void getLambda(int const paramType, int const paramIx, int const paramDim, double * lambda_dst) const { std::fill(lambda_dst, lambda_dst + paramDim, lambda); }
-
          virtual double getParameterLength() const = 0;
 
-         virtual void preIterationCallback() { }
          virtual void updateParameters(int const paramType, VectorArrayAdapter<double> const& delta) = 0;
-         virtual void updateStepParams(Vector<double> const& tk) {} 
          virtual void finishUpdateParameters() { }
          virtual void saveAllParameters() = 0;
          virtual void restoreAllParameters() = 0;
 
-         double evalCurrentObjective()
-         {
-            int const nObjs = _costFunctions.size();
-            double err = 0.0;
-            for (int obj = 0; obj < nObjs; ++obj)
-            {
-               NLSQ_CostFunction& costFun = *_costFunctions[obj];
-               NLSQ_Residuals& residuals = *_residuals[obj];
-
-               costFun.preIterationCallback();
-               costFun.initializeResiduals();
-               costFun.evalAllResiduals(residuals._residuals);
-               costFun.initializeWeights(residuals._residuals);
-               costFun.fillAllWeights(residuals._residuals, residuals._weights);
-
-               err += costFun.evalCost(residuals._residuals, residuals._weights);
-            } // end for (obj)
-            return err;
-         } // end evalCurrentObjective()
-
          CCS_Matrix<double> const& JtJ() const { return _JtJ; }
-
-         vector<NLSQ_Residuals *> const& residuals() const { return _residuals; }
 
       protected:
          void setupSparseJtJ(bool const runSymamd);
@@ -348,7 +205,6 @@ namespace V3D
          vector<pair<int, int> > _paramIdInverseMap; //!< the reverse mapping from global ids to (paramType,id) pairs.
 
          vector<NLSQ_Residuals *>   _residuals;      // one per cost function
-
          //!< _hessianIndices establishes the link between the local hessian in a cost function to the global non-zero block.
          vector<MatrixArray<int> *> _hessianIndices; // one per cost function
          NLSQ_LM_BlockHessian       _hessian;
@@ -359,8 +215,6 @@ namespace V3D
 
          int _paramTypeRowStart[NLSQ_MAX_PARAM_TYPES + 1];
          CCS_Matrix<double> _JtJ;
-
-         ostream &_log_ostream;
    }; // end struct NLSQ_LM_Optimizer
 
 #endif // defined(V3DLIB_ENABLE_SUITESPARSE)
