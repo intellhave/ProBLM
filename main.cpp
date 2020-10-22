@@ -1,4 +1,4 @@
-#include "common_utils.h"
+#nclude "common_utils.h"
 #include "nlsq.h"
 #include "stochastic_nlsq.h"
 #include "twoview_models.h"
@@ -71,6 +71,8 @@ int main(int argvc, char **argv) {
       new StochasticTwoViewOptimizer(x1, x2, model, params, config, sto_stat);
 
   sto_opt->optimize();
+  /* sto_opt->optimize_relaxed();//Relaxed condition */
+
   /* std::string sto_log_path = "./logs/sto/" + run_str + ".txt"; */
   /* sto_stat.WriteToFile(sto_log_path); */
   

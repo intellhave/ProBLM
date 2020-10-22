@@ -25,11 +25,8 @@ struct StochasticTwoViewOptimizer:public TwoViewOptimizer
     
     virtual void optimize();
 
-    //The new version: Optimize the batch fully
-    virtual void optimize_v2();
-
-    //Reduction per residual
-    virtual void optimize_v3();
+    //Optimization with relaxed condition
+    virtual void optimize_relaxed();
 
     protected:
         vector<int> _sampled_idx;
