@@ -1,6 +1,7 @@
 # ProBLM
 C++ implementations of the algorithms introduced in our ACCV 2020 paper:
-Huu Le, Christopher Zach, Edward Rosten, Oliver Woodford, "Progressive Batching for Efficient Non-linear Least Squares" (Oral)
+Huu Le, Christopher Zach, Edward Rosten, Oliver Woodford, ["Progressive Batching for Efficient Non-linear Least Squares"](https://arxiv.org/pdf/2010.10968.pdf) (Oral)
+
 
 # Usage 
 ## Dependencies
