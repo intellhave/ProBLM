@@ -1,8 +1,8 @@
 # ProBLM
 C++ implementations of the algorithms introduced in our ACCV 2020 paper:
-Huu Le, Christopher Zach, Edward Rosten, Oliver Woodford, ["Progressive Batching for Efficient Non-linear Least Squares"](https://arxiv.org/pdf/2010.10968.pdf) (Oral)
+* Huu Le, Christopher Zach, Edward Rosten, Oliver Woodford, ["Progressive Batching for Efficient Non-linear Least Squares"](https://arxiv.org/pdf/2010.10968.pdf) (Oral)
 
-We are happy to receive any inputs or question you may have, as well as bug reports. We can be reached by email at huul@chalmers.se
+We are happy to receive any inputs or questions you may have, as well as bug reports. We can be reached by email at huul@chalmers.se. For bug reports, please create issues on this repository.
 
 # Usage 
 ## Dependencies
@@ -48,8 +48,3 @@ For example (from the build folder):
 ```
 ./homography ../data/dino1A.png ../data/dino1B.png
 ```
-
-
-
-
-
