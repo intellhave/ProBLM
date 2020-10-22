@@ -71,6 +71,7 @@ void AffineRegModel::computeJacobian(int i, Eigen::VectorXd &J)
     float const xx = x + _params[0];
     float const yy = y + _params[1];
 
+
     V3D::Vector2f const grad0 = _grad_im0(x, y);
     V3D::Vector2f const grad1 = access_image(_grad_im1, xx, yy);
     V3D::Vector2f grad = 0.5f * (grad0 + grad1);
