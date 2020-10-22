@@ -25,7 +25,7 @@ A sample input data is provided in the data folder. This file contains the coord
 
 To run the program, execute the following command (from the build folder):
 ```
-./problm ../data/puttive.txt
+./problm ../data/putative.txt
 ```
 
 
